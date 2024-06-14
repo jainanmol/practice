@@ -1,10 +1,11 @@
 # Important Note
 The code for this project is not uploaded on Git as mentioned on email.
 
-# Inclustions
+# Inclusions
 
 * Unit Tests : For  for major parts of the code to ensure functionality and reliability
 * Running Unit Tests: npm run test
+* Pagination for **_GET_** `/jobs/unpaid`
 
 # Installation
 
