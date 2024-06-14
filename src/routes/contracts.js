@@ -3,26 +3,15 @@ const express = require('express');
 const router = express.Router();
 const handleError = require('../utils/errorHandler');
 const { getProfile } = require('../middleware/getProfile');
-const { PROFILE_TYPES } = require('../enums/database');
-const { Op } = require('sequelize');
+const contractService = require('../services/contractService');
 
+router.use(getProfile);
 
-router.get('/', getProfile, async (req,res) => {
-    const { Contract } = req.app.get('models');
-
-    const profileFilterKey = req.profile.type === PROFILE_TYPES.CLIENT ? 'ClientId' : 'ContractorId';
-
+router.get('/', async (req, res) => {
     try {
-        const contracts = await Contract.findAll({
-            where: {
-                [profileFilterKey]: req.profile.id,
-                status : {
-                    [Op.ne]: 'terminated'
-                }
-            }
-        });
+        const contracts = await contractService.getAllContracts(req.app.get('models'), req.profile);
 
-        if (!contracts) {
+        if (!contracts || contracts.length === 0) {
             return handleError(res, 404, 'Contract(s) not found for the given profile.');
         }
 
@@ -36,20 +25,10 @@ router.get('/', getProfile, async (req,res) => {
 });
 
 
-router.get('/:id', getProfile, async (req, res) => {
-    const { Contract } = req.app.get('models');
+router.get('/:id', async (req, res) => {
     const { id } = req.params;
-
-    // Determine the profile filter key
-    const profileFilterKey = req.profile.type === PROFILE_TYPES.CLIENT ? 'ClientId' : 'ContractorId';
-
     try {
-        const contract = await Contract.findOne({
-            where: {
-                id: id, // filter by id
-                [profileFilterKey]: req.profile.id // dynamic profile filter
-            }
-        });
+        const contract = await contractService.getContractById(req.app.get('models'), req.profile, id);
 
         if (!contract) {
             return handleError(res, 404, 'Contract not found for the given profile.');
